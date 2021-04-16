@@ -13,3 +13,4 @@ Allow from 127.0.0.1
 # Install
 * Install Node v12 or better
 * `npm install`
+* Optionally set a startup script like in the example
