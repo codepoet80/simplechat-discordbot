@@ -11,6 +11,9 @@ Allow from 127.0.0.1
 ```
 
 # Install
+* Setup a Discord app and add to your server: https://www.howtogeek.com/364225/how-to-make-your-own-discord-bot/
 * Install Node v12 or better
 * `npm install`
+* copy config-example.json to config.json
+* change config.json to your liking
 * Optionally set a startup script like in the example
