@@ -1,8 +1,10 @@
-This bot can be added to a Discord server to copy messages to and from your local chat. SimpleChat will try to communicate with it on the port you set. It communicates to SimpleChat by writing directly to the SimpleChat chatlog file.
+# SimpleChat Discord Bot
+
+This bot can be added to a Discord server to copy messages to and from your local chat. SimpleChat will try to communicate with it on the port you set. It communicates to SimpleChat by writing directly to the SimpleChat chatlog file. Learn more about SimpleChat here: https://github.com/codepoet80/simplechat-service
 
 You can run this from anywhere, but its not safe to run this folder inside a web directory unless you restrict access to localhost.
 
-# Sample .htaccess
+## Sample .htaccess
 
 ```
 Order Deny,Allow
