@@ -17,6 +17,7 @@ RUN ln -fs /usr/share/zoneinfo/UCT /etc/localtime
 RUN cd /opt; git clone https://github.com/codepoet80/simplechat-discordbot
 RUN mv /opt/simplechat-discordbot/config-example.json /opt/simplechat-discordbot/config.json
 RUN mv /opt/simplechat-discordbot/start-example.sh /run.sh
+RUN cd /opt/simplechat-discordbot; npm install
 
 EXPOSE 8001
 
