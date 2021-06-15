@@ -83,12 +83,15 @@ client.on('message', msg => { //new message received in Discord
     if (msg.channel == listenChannel || listenChannel == "*") {
         var user = new Discord.User(client, msg.author);
         if (!user.bot && !user.system) {
-            console.log("posting to simplechat file");
+	    var msgContent = msg.cleanContent;
+	    if (!msg.nonce || msg.nonce == null || msg.nonce == "")
+		msgContent = "has joined the server!";
+            console.log("posting to simplechat file " + msgContent);
             var newMessage = {
                 "uid": msg.id,
                 "senderKey": msg.nonce,
                 "sender": user.username,
-                "message": convertEmojis(msg.cleanContent),
+                "message": convertEmojis(msgContent),
                 "timestamp": formatDateTime(msg.createdAt),
                 "postedFrom": "discord",
                 "discordId": msg.id
