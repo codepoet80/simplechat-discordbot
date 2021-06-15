@@ -87,20 +87,18 @@ client.on('message', msg => { //new message received in Discord
     console.log(msg.id + " is a new message from: " + msg.author + ", in channel:" + msg.channel);
     if (msg.channel == listenChannel || listenChannel == "*") {
         var user = new Discord.User(client, msg.author);
-<<<<<<< HEAD
         if (!user.bot && !user.system) {
 	    var msgContent = msg.cleanContent;
 	    if (!msg.nonce || msg.nonce == null || msg.nonce == "")
 		msgContent = "has joined the server!";
             console.log("posting to simplechat file " + msgContent);
-=======
 	if (user.system || (user.bot && ignoreUsers.indexOf("bot") != -1) || (ignoreUsers.indexOf(user.id) != -1)) {
             console.log("ignoring message from self or ignored user.");
 	} else {
             console.log("posting to simplechat file");
-	    if ((!msg.cleanCountent || msg.cleanContent == "") && (!msg.nonce || msg.nonce == ""))
-		msg.cleanContent = "<i>joined the server!</i>";
->>>>>>> 76843faa5c5cd5e7f7832def043df8702f1b7f61
+	    var msgContent = msg.cleanContent;
+	    if (!msg.nonce || msg.nonce == null || msg.nonce == "")
+		msgContent = "joined the server!";
             var newMessage = {
                 "uid": msg.id,
                 "senderKey": msg.nonce,
