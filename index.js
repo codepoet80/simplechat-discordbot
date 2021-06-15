@@ -92,7 +92,7 @@ client.on('message', msg => { //new message received in Discord
                 "uid": msg.id,
                 "senderKey": msg.nonce,
                 "sender": user.username,
-                "message": convertEmojis(msg.cleanContent),
+                "message": convertEmojis(msgContent),
                 "timestamp": formatDateTime(msg.createdAt),
                 "postedFrom": "discord",
                 "discordId": msg.id
