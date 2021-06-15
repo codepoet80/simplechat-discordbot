@@ -15,6 +15,9 @@ const client = new Discord.Client();
 var appId = config.discordAppId;
 var listenChannel = config.discordListenChannelId;
 var postChannel = config.discordPostChannelId;
+var ignoreUsers = config.discordIgnoreUsers;
+if (!ignoreUsers)
+	ignoreUsers = [];
 
 //Web server to receive instructions on
 //  This should usually be accessible only to local host and is used to integrate
@@ -74,7 +77,9 @@ webapp.post('/edit', async function(req, res) {
 //Discord client -- this is the main bot code
 //  It needs to be able to reach the Internet
 client.on('ready', () => {
-    console.log(`Logged in as ${client.user.tag}!`);
+    console.log(`Logged in as ${client.user.id}!`);
+    ignoreUsers.push(client.user.id);
+    console.log('Ignored users: ' + ignoreUsers);
 });
 client.login(appId);
 
@@ -82,8 +87,12 @@ client.on('message', msg => { //new message received in Discord
     console.log(msg.id + " is a new message from: " + msg.author + ", in channel:" + msg.channel);
     if (msg.channel == listenChannel || listenChannel == "*") {
         var user = new Discord.User(client, msg.author);
-        if (!user.bot && !user.system) {
+	if (user.system || (user.bot && ignoreUsers.indexOf("bot") != -1) || (ignoreUsers.indexOf(user.id) != -1)) {
+            console.log("ignoring message from self or ignored user.");
+	} else {
             console.log("posting to simplechat file");
+	    if ((!msg.cleanCountent || msg.cleanContent == "") && (!msg.nonce || msg.nonce == ""))
+		msg.cleanContent = "<i>joined the server!</i>";
             var newMessage = {
                 "uid": msg.id,
                 "senderKey": msg.nonce,
@@ -116,7 +125,9 @@ client.on('message', msg => { //new message received in Discord
 
 client.on('messageReactionAdd', (reaction, user) => { //message reaction added in Discord
     console.log("a reaction happened on: " + reaction.message + " user was bot: " + user.bot);
-    if (!user.bot) {
+    if (user.system || (user.bot && ignoreUsers.indexOf("bot") != -1) || (ignoreUsers.indexOf(user.id) != -1)) {
+	//ignore
+    } else {
         fs.exists(dataFile, (exists) => {
             fs.readFile(dataFile, function(err, data) {
                 if (data) {
@@ -147,8 +158,10 @@ client.on('messageUpdate', (oldMsg, newMsg) => { //message edited in Discord
     var discordMsg = newMsg.cleanContent;
     discordMsg = discordMsg.split("**: ");
     discordMsg = discordMsg[discordMsg.length - 1];
-
-    if (!newMsg.author.bot) {
+    var user = newMsg.author;
+    if (user.system || (user.bot && ignoreUsers.indexOf("bot") != -1) || (ignoreUsers.indexOf(user.id) != -1)) {
+	//ignore
+    } else {
         fs.exists(dataFile, (exists) => {
             fs.readFile(dataFile, function(err, data) {
                 if (data) {
