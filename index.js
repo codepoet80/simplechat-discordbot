@@ -84,7 +84,7 @@ client.on('message', msg => { //new message received in Discord
         var user = new Discord.User(client, msg.author);
         if (!user.bot && !user.system) {
 	    var msgContent = msg.cleanContent;
-	    if (!msg.nonce || msg.nonce == null) {
+	    if ((!msg.nonce || msg.nonce == null) && msgContent != "") {
 		msgContent = "has joined the server!";
 	    }
             console.log("posting to simplechat file " + msgContent);
