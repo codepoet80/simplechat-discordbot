@@ -203,7 +203,7 @@ client.on("messageDelete", function(msg){
 
 function downloadAttachment(url, filename) {
     var dest = cachePath
-    var file = fs.createWriteStream(dest + "\\" + filename);
+    var file = fs.createWriteStream(dest + filename);
     var request = https.get(url, function(response) {
         response.pipe(file);
         file.on('finish', function() {
