@@ -1,8 +1,10 @@
 const config = require('./config.json');
 const express = require('express');
 const fs = require('fs');
+var https = require('https');
 
 var dataFile = config.simpleChatDataFile;
+var cachePath = config.simpleChatAttachmentsCache;
 
 //Web server config
 const webapp = express();
@@ -83,10 +85,24 @@ client.on('message', msg => { //new message received in Discord
     if (msg.channel == listenChannel || listenChannel == "*") {
         var user = new Discord.User(client, msg.author);
         if (!user.bot && !user.system) {
-	    var msgContent = msg.cleanContent;
-	    if ((!msg.nonce || msg.nonce == null) && msgContent != "") {
-		msgContent = "has joined the server!";
-	    }
+	        var msgContent = msg.cleanContent;
+
+            if (msg.attachments) {
+                var attachments = [];
+                console.log("this message has attachments");
+                for (const thisattach of msg.attachments) {
+                    attachdata = thisattach[1];
+
+                    var attachment = {
+                        "filename": attachdata.name,
+                        "height": attachdata.height,
+                        "width": attachdata.width,
+                    }
+                    attachments.push(attachment);
+                    
+                    downloadAttachment(attachdata.url, attachdata.name)
+                }
+            }
             console.log("posting to simplechat file " + msgContent);
             var newMessage = {
                 "uid": msg.id,
@@ -97,7 +113,9 @@ client.on('message', msg => { //new message received in Discord
                 "postedFrom": "discord",
                 "discordId": msg.id
             }
-            console.log("Posting: " + JSON.stringify(newMessage));
+            if (attachments && attachments.length > 0)
+                newMessage.attachments = attachments;
+            console.log("Posting: " + JSON.stringify(newMessage) + " to " + dataFile);
 
             fs.readFile(dataFile, function(err, data) {
                 if (data) {
@@ -174,7 +192,26 @@ client.on('messageUpdate', (oldMsg, newMsg) => { //message edited in Discord
     }
 });
 
+client.on("messageDelete", function(msg){
+    console.log(msg.id + " is a deleted message from: " + msg.author + ", in channel:" + msg.channel);
+    //TODO: Implement message delete!
+});
+
 //Helper functions
+
+function downloadAttachment(url, filename) {
+    var dest = cachePath
+    var file = fs.createWriteStream(dest + "\\" + filename);
+    var request = https.get(url, function(response) {
+        response.pipe(file);
+        file.on('finish', function() {
+        file.close();  // close() is async, call cb after close completes.
+        });
+    }).on('error', function(err) { // Handle errors
+        fs.unlink(dest); // Delete the file async. (But we don't check the result)
+    });
+};
+
 
 var findMessage = async function(messageId, discordId) {
     if (listenChannel == "*") {

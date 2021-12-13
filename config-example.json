@@ -6,6 +6,7 @@
     "discordIgnoreUsers": [
         "list of user ids you want to ignore, the bot will itself will be ignored by default to avoid looping messages, to ignore other bots, use: bot"
     ],
+    "simpleChatAttachmentsCache": "/var/www/chat/cache/",
     "simpleChatDataFile": "/var/www/chat/data/chatlog.json",
     "maxChatLength": 100
 }
