@@ -12,7 +12,7 @@ var webPort = config.webPort;
 //Discord config
 const Discord = require('discord.js');
 const client = new Discord.Client();
-var appId = config.discordAppId;
+var botToken = config.discordBotToken;
 var listenChannel = config.discordListenChannelId;
 var postChannel = config.discordPostChannelId;
 
@@ -76,7 +76,7 @@ webapp.post('/edit', async function(req, res) {
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
 });
-client.login(appId);
+client.login(botToken);
 
 client.on('message', msg => { //new message received in Discord
     console.log(msg.id + " is a new message from: " + msg.author + ", in channel:" + msg.channel);
