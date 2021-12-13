@@ -95,14 +95,14 @@ client.on('message', msg => { //new message received in Discord
                     var nameparts = attachdata.name.split(".");
                     var extension = nameparts[nameparts.length - 1];
                     var attachment = {
-                        "filename": attachdata.name,
+                        "filename": attachdata.id + "." + extension,
                         "extension": extension,
                         "height": attachdata.height,
                         "width": attachdata.width,
                     }
                     attachments.push(attachment);
                     
-                    downloadAttachment(attachdata.url, attachdata.name)
+                    downloadAttachment(attachdata.url, attachdata.id + "." + extension)
                 }
             }
             console.log("posting to simplechat file " + msgContent);
