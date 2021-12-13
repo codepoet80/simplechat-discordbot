@@ -92,9 +92,11 @@ client.on('message', msg => { //new message received in Discord
                 console.log("this message has attachments");
                 for (const thisattach of msg.attachments) {
                     attachdata = thisattach[1];
-
+                    var nameparts = attachdata.name.split(".");
+                    var extension = nameparts[nameparts.length - 1];
                     var attachment = {
                         "filename": attachdata.name,
+                        "extension": extension,
                         "height": attachdata.height,
                         "width": attachdata.width,
                     }
