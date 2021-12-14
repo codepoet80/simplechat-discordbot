@@ -210,6 +210,7 @@ function downloadAttachment(url, filename) {
             file.on('finish', function() {
             file.close();  // close() is async, call cb after close completes.
             if (filename.indexOf(".jpg") != -1) {
+                console.log('Checking image rotation');
                 jo.rotate(dest + filename)
                 .catch((error) => {
                     if (error.code === jo.errors.correct_orientation) {
@@ -218,6 +219,7 @@ function downloadAttachment(url, filename) {
                         console.log(JSON.stringify(error));
                     }
                 })
+                console.log('Rotation complete');
             }
         });
     }).on('error', function(err) { // Handle errors
