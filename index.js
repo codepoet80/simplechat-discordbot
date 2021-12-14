@@ -229,7 +229,9 @@ function downloadAttachment(url, filename) {
                 console.log('Rotation complete');
                 console.log('Checking image size');
                 sharp(path)
-                    .resize(1024, 300)
+                    .resize(1024, 768, {
+                        fit: 'inside'
+                    })
                     .toFile(dest + "rs-" + filename)
                     .then(() => {
                         console.log('Resize done');
