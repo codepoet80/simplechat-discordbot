@@ -210,7 +210,14 @@ function downloadAttachment(url, filename) {
             file.on('finish', function() {
             file.close();  // close() is async, call cb after close completes.
             if (filename.indexOf(".jpg") != -1) {
-                jo.rotate(dest + filename);
+                jo.rotate(dest + filename)
+                .catch((error) => {
+                    if (error.code === jo.errors.correct_orientation) {
+                        console.log('The orientation of this image is already correct!')
+                    } else {
+                        console.log(JSON.stringify(error));
+                    }
+                })
             }
         });
     }).on('error', function(err) { // Handle errors
