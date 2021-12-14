@@ -230,7 +230,7 @@ function downloadAttachment(url, filename) {
                 console.log('Checking image size');
                 sharp(path)
                     .resize(1024, 300)
-                    .toFile("rs-" + path)
+                    .toFile(dest + "rs-" + filename)
                     .then(() => {
                         console.log('Resize done');
                 });
