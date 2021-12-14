@@ -211,6 +211,22 @@ function downloadAttachment(url, filename) {
             file.close();  // close() is async, call cb after close completes.
             if (filename.indexOf(".jpg") != -1) {
                 console.log('Checking image rotation');
+                const options = {
+                    quality: 8,
+                    jpegjsMaxResolutionInMP: 1234,
+                  }
+                const path = dest + filename;
+                jo.rotate(path, options, (error, buffer, orientation, dimensions, quality) => {
+                    if (error) {
+                      console.log('An error occurred when rotating the file: ' + error.message)
+                      return
+                    }
+                    console.log(`Orientation was ${orientation}`)
+                    console.log(`Dimensions after rotation: ${dimensions.width}x${dimensions.height}`)
+                    console.log(`Quality: ${quality}`)
+                    // ...Do whatever you need with the resulting buffer...
+                  })
+/*
                 jo.rotate(dest + filename)
                 .catch((error) => {
                     if (error.code === jo.errors.correct_orientation) {
@@ -219,6 +235,7 @@ function downloadAttachment(url, filename) {
                         console.log(JSON.stringify(error));
                     }
                 })
+                */
                 console.log('Rotation complete');
             }
         });
