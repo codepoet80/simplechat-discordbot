@@ -227,16 +227,16 @@ function downloadAttachment(url, filename) {
                     console.log(`Quality: ${quality}`)
                   })
                 console.log('Rotation complete');
-                console.log('Checking image size');
-                sharp(path)
-                    .resize(1024, 768, {
-                        fit: 'inside'
-                    })
-                    .toFile(dest + "rs-" + filename)
-                    .then(() => {
-                        console.log('Resize done');
-                });
             }
+            console.log('Resizing image');
+            sharp(path)
+                .resize(1024, 768, {
+                    fit: 'inside'
+                })
+                .toFile(dest + "rs-" + filename)
+                .then(() => {
+                    console.log('Resize done');
+            });
         });
     }).on('error', function(err) { // Handle errors
         fs.unlink(dest); // Delete the file async. (But we don't check the result)
