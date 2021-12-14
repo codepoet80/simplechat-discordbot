@@ -1,5 +1,6 @@
 const config = require('./config.json');
 const express = require('express');
+const jo = require('jpeg-autorotate')
 const fs = require('fs');
 var https = require('https');
 
@@ -205,9 +206,12 @@ function downloadAttachment(url, filename) {
     var dest = cachePath
     var file = fs.createWriteStream(dest + filename);
     var request = https.get(url, function(response) {
-        response.pipe(file);
-        file.on('finish', function() {
-        file.close();  // close() is async, call cb after close completes.
+            response.pipe(file);
+            file.on('finish', function() {
+            file.close();  // close() is async, call cb after close completes.
+            if (filename.indexOf(".jpg") != -1) {
+                jo.rotate(dest + filename);
+            }
         });
     }).on('error', function(err) { // Handle errors
         fs.unlink(dest); // Delete the file async. (But we don't check the result)
