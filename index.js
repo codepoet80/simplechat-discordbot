@@ -226,6 +226,13 @@ function downloadAttachment(url, filename) {
                     console.log(`Quality: ${quality}`)
                   })
                 console.log('Rotation complete');
+                console.log('Checking image size');
+                sharp(path)
+                .resize(1024, 300)
+                .toFile(path)
+                .then(() => {
+                    console.log('Resize done');
+                });
             }
         });
     }).on('error', function(err) { // Handle errors
