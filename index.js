@@ -1,6 +1,7 @@
 const config = require('./config.json');
 const express = require('express');
-const jo = require('jpeg-autorotate')
+const jo = require('jpeg-autorotate');
+const sharp = require('sharp');
 const fs = require('fs');
 var https = require('https');
 
