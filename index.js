@@ -97,7 +97,7 @@ client.on('message', msg => { //new message received in Discord
                     var nameparts = attachdata.name.split(".");
                     var extension = nameparts[nameparts.length - 1];
                     var attachment = {
-                        "filename": attachdata.id + "." + extension,
+                        "filename": "rs-" + attachdata.id + "." + extension,
                         "extension": extension,
                         "height": attachdata.height,
                         "width": attachdata.width,
@@ -229,10 +229,10 @@ function downloadAttachment(url, filename) {
                 console.log('Rotation complete');
                 console.log('Checking image size');
                 sharp(path)
-                .resize(1024, 300)
-                .toFile(path)
-                .then(() => {
-                    console.log('Resize done');
+                    .resize(1024, 300)
+                    .toFile("rs-" + path)
+                    .then(() => {
+                        console.log('Resize done');
                 });
             }
         });
