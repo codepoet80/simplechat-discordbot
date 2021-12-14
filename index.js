@@ -210,13 +210,13 @@ function downloadAttachment(url, filename) {
             response.pipe(file);
             file.on('finish', function() {
             file.close();  // close() is async, call cb after close completes.
+            const path = dest + filename;
             if (filename.indexOf(".jpg") != -1) {
                 console.log('Checking image rotation');
                 const options = {
                     quality: 8,
                     jpegjsMaxResolutionInMP: 1234,
                   }
-                const path = dest + filename;
                 jo.rotate(path, options, (error, buffer, orientation, dimensions, quality) => {
                     if (error) {
                       console.log('An error occurred when rotating the file: ' + error.message)
