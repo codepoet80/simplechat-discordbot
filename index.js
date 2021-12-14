@@ -224,18 +224,7 @@ function downloadAttachment(url, filename) {
                     console.log(`Orientation was ${orientation}`)
                     console.log(`Dimensions after rotation: ${dimensions.width}x${dimensions.height}`)
                     console.log(`Quality: ${quality}`)
-                    // ...Do whatever you need with the resulting buffer...
                   })
-/*
-                jo.rotate(dest + filename)
-                .catch((error) => {
-                    if (error.code === jo.errors.correct_orientation) {
-                        console.log('The orientation of this image is already correct!')
-                    } else {
-                        console.log(JSON.stringify(error));
-                    }
-                })
-                */
                 console.log('Rotation complete');
             }
         });
