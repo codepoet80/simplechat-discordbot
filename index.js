@@ -33,6 +33,7 @@ webapp.post('/post', function(req, res) {
     console.log("post request was: " + JSON.stringify(req.body));
     var message = req.body.content;
     message = convertEmoticons(message);
+    message = convertWosaLinks(message);
     res.end("{'status':'ok'}")
     var channel = client.channels.cache.get(postChannel);
     channel.send("**" + req.body.username + "**: " + message).then(message => {
@@ -279,6 +280,11 @@ function discordIDToSimpleChat(uid, did) {
             }
         }
     });
+}
+
+function convertWosaLinks(message) { //change default wosa link to one Discord will render
+    message = messeage.replace("wosa.link/download.php?", "wosa.link/image.php?");
+    return message;
 }
 
 function convertEmoticons(message) { //turn an emoji into a webOS emoticon
