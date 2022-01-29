@@ -283,7 +283,7 @@ function discordIDToSimpleChat(uid, did) {
 }
 
 function convertWosaLinks(message) { //change default wosa link to one Discord will render
-    message = messeage.replace("wosa.link/download.php?", "wosa.link/image.php?");
+    message = message.replace("wosa.link/download.php?", "wosa.link/image.php?");
     return message;
 }
 
