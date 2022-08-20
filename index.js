@@ -90,23 +90,26 @@ client.on('message', msg => { //new message received in Discord
         if (!user.bot && !user.system) {
 	        var msgContent = msg.cleanContent;
 
-            if (msg.attachments) {
-                var attachments = [];
-                console.log("this message has attachments");
-                for (const thisattach of msg.attachments) {
-                    attachdata = thisattach[1];
-                    var nameparts = attachdata.name.split(".");
-                    var extension = nameparts[nameparts.length - 1];
-                    var attachment = {
-                        "filename": "rs-" + attachdata.id + "." + extension,
-                        "extension": extension,
-                        "height": attachdata.height,
-                        "width": attachdata.width,
+            try {
+                if (msg.attachments) {
+                    var attachments = [];
+                    console.log("this message has attachments");
+                    for (const thisattach of msg.attachments) {
+                        attachdata = thisattach[1];
+                        var nameparts = attachdata.name.split(".");
+                        var extension = nameparts[nameparts.length - 1];
+                        var attachment = {
+                            "filename": "rs-" + attachdata.id + "." + extension,
+                            "extension": extension,
+                            "height": attachdata.height,
+                            "width": attachdata.width,
+                        }
+                        attachments.push(attachment);     
+                        downloadAttachment(attachdata.url, attachdata.id + "." + extension)
                     }
-                    attachments.push(attachment);
-                    
-                    downloadAttachment(attachdata.url, attachdata.id + "." + extension)
                 }
+            } catch (ex) {
+                console.warn("an error occurred processing an attachment, media type may be unsupported.")
             }
             console.log("posting to simplechat file " + msgContent);
             var newMessage = {
