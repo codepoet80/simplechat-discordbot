@@ -93,7 +93,7 @@ client.on('message', msg => { //new message received in Discord
             try {
                 if (msg.attachments) {
                     var attachments = [];
-                    console.log("this message has attachments");
+                    console.log("Incoming message has attachments");
                     for (const thisattach of msg.attachments) {
                         attachdata = thisattach[1];
                         var nameparts = attachdata.name.split(".");
@@ -109,9 +109,9 @@ client.on('message', msg => { //new message received in Discord
                     }
                 }
             } catch (ex) {
-                console.warn("an error occurred processing an attachment, media type may be unsupported.")
+                console.warn("An error occurred processing an attachment, media type may be unsupported and was ignored.")
             }
-            console.log("posting to simplechat file " + msgContent);
+            console.log("Posting to simplechat file " + msgContent);
             var newMessage = {
                 "uid": msg.id,
                 "senderKey": msg.nonce,
@@ -134,7 +134,7 @@ client.on('message', msg => { //new message received in Discord
                             json.messages.shift();
                         fs.writeFile(dataFile, JSON.stringify(json, null, 4), (err) => {
                             if (err)
-                                console.log("error writing file: " + err);
+                                console.log("Error writing file: " + err);
                         });
                         console.log("Chat log has " + json.messages.length + " messages.");
                     }
@@ -145,7 +145,7 @@ client.on('message', msg => { //new message received in Discord
 });
 
 client.on('messageReactionAdd', (reaction, user) => { //message reaction added in Discord
-    console.log("a reaction happened on: " + reaction.message + " user was bot: " + user.bot);
+    console.log("A reaction happened on: " + reaction.message + " user was bot: " + user.bot);
     if (!user.bot) {
         fs.exists(dataFile, (exists) => {
             fs.readFile(dataFile, function(err, data) {
@@ -154,7 +154,7 @@ client.on('messageReactionAdd', (reaction, user) => { //message reaction added i
                     if (json) {
                         for (var m = 0; m < json.messages.length; m++) {
                             if (json.messages[m].uid == reaction.message || json.messages[m].discordId == reaction.message) {
-                                console.log("found chatlog message to like!");
+                                console.log("Found chatlog message to like!");
                                 if (!json.messages[m].likes)
                                     json.messages[m].likes = 1;
                                 else
@@ -163,7 +163,7 @@ client.on('messageReactionAdd', (reaction, user) => { //message reaction added i
                         }
                         fs.writeFile(dataFile, JSON.stringify(json, null, 4), (err) => {
                             if (err)
-                                console.log("error writing file: " + err);
+                                console.log("Error writing file: " + err);
                         });
                     }
                 }
@@ -173,7 +173,7 @@ client.on('messageReactionAdd', (reaction, user) => { //message reaction added i
 });
 
 client.on('messageUpdate', (oldMsg, newMsg) => { //message edited in Discord
-    console.log("an edit happened on: " + oldMsg + ", user was bot: " + newMsg.author.bot);
+    console.log("An edit happened on: " + oldMsg + ", user was bot: " + newMsg.author.bot);
     var discordMsg = newMsg.cleanContent;
     discordMsg = discordMsg.split("**: ");
     discordMsg = discordMsg[discordMsg.length - 1];
@@ -191,7 +191,7 @@ client.on('messageUpdate', (oldMsg, newMsg) => { //message edited in Discord
                         }
                         fs.writeFile(dataFile, JSON.stringify(json, null, 4), (err) => {
                             if (err)
-                                console.log("error writing file: " + err);
+                                console.log("Error writing file: " + err);
                         });
                     }
                 }
@@ -250,9 +250,9 @@ function downloadAttachment(url, filename) {
 
 var findMessage = async function(messageId, discordId) {
     if (listenChannel == "*") {
-        console.log("warning: listening to all channels limits responses to only the post channel...");
+        console.warn("Warning: listening to all channels limits responses to only the post channel...");
     }
-    console.log("looking for message: " + messageId + "/" + discordId + " in channel: " + listenChannel);
+    console.log("Looking for message: " + messageId + "/" + discordId + " in channel: " + listenChannel);
     var channel = client.channels.cache.get(postChannel);
     var findMsg = await channel.messages.fetch({ limit: 100 }).then(messages => {
         for (message of messages) {
@@ -267,7 +267,7 @@ var findMessage = async function(messageId, discordId) {
 }
 
 function discordIDToSimpleChat(uid, did) {
-    console.log("append discordid " + did + " to simplechat uid: " + uid);
+    console.log("Append DiscordID " + did + " to simplechat uid: " + uid);
     fs.readFile(dataFile, function(err, data) {
         if (data) {
             var json = JSON.parse(data);
@@ -278,7 +278,7 @@ function discordIDToSimpleChat(uid, did) {
                 }
                 fs.writeFile(dataFile, JSON.stringify(json, null, 4), (err) => {
                     if (err)
-                        console.log("error writing file: " + err);
+                        console.log("Error writing file: " + err);
                 });
             }
         }
