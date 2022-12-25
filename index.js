@@ -19,6 +19,7 @@ const client = new Discord.Client();
 var botToken = config.discordBotToken;
 var listenChannel = config.discordListenChannelId;
 var postChannel = config.discordPostChannelId;
+const safeExtensions = ["jpg", "gif", "png"];
 
 //Web server to receive instructions on
 //  This should usually be accessible only to local host and is used to integrate
@@ -104,8 +105,10 @@ client.on('message', msg => { //new message received in Discord
                             "height": attachdata.height,
                             "width": attachdata.width,
                         }
-                        attachments.push(attachment);     
-                        downloadAttachment(attachdata.url, attachdata.id + "." + extension)
+                        if (safeExtensions.includes(extension)) {
+                            attachments.push(attachment);     
+                            downloadAttachment(attachdata.url, attachdata.id + "." + extension)
+                        }
                     }
                 }
             } catch (ex) {
