@@ -19,6 +19,7 @@ const client = new Discord.Client();
 var botToken = config.discordBotToken;
 var listenChannel = config.discordListenChannelId;
 var postChannel = config.discordPostChannelId;
+var allowedBots = config.allowedBots;
 const safeExtensions = ["jpg", "gif", "png"];
 
 //Web server to receive instructions on
@@ -28,6 +29,7 @@ var server = webapp.listen(webPort, function() {
     var host = server.address().address;
     var port = server.address().port;
     console.log("🤖 Listening for messages to send to Discord at http://%s:%s", host, port);
+    console.log("allowed bots are: " + JSON.stringify(allowedBots));
 });
 
 webapp.post('/post', function(req, res) {
@@ -85,10 +87,14 @@ client.on('ready', () => {
 client.login(botToken);
 
 client.on('message', msg => { //new message received in Discord
-    console.log(msg.id + " is a new message from: " + msg.author + ", in channel:" + msg.channel);
+    var user = new Discord.User(client, msg.author);
+    console.log(msg.id + " is a new message from: " + msg.author + ", in channel:" + msg.channel + " user was bot: " + user.bot);
     if (msg.channel == listenChannel || listenChannel == "*") {
-        var user = new Discord.User(client, msg.author);
-        if (!user.bot && !user.system) {
+	if (user.bot && allowedBots.indexOf(msg.author+"") == -1) {
+		console.log("User was a bot with id: " + msg.author + " which is not in allowed list. Message will not be posted to simplechat.");
+		return;
+	}
+        if (!user.system) {
 	        var msgContent = msg.cleanContent;
 
             try {
@@ -106,7 +112,7 @@ client.on('message', msg => { //new message received in Discord
                             "width": attachdata.width,
                         }
                         if (safeExtensions.includes(extension)) {
-                            attachments.push(attachment);     
+                            attachments.push(attachment);
                             downloadAttachment(attachdata.url, attachdata.id + "." + extension)
                         }
                     }
@@ -181,26 +187,28 @@ client.on('messageUpdate', (oldMsg, newMsg) => { //message edited in Discord
     discordMsg = discordMsg.split("**: ");
     discordMsg = discordMsg[discordMsg.length - 1];
 
-    if (!newMsg.author.bot) {
-        fs.exists(dataFile, (exists) => {
-            fs.readFile(dataFile, function(err, data) {
-                if (data) {
-                    var json = JSON.parse(data);
-                    if (json) {
-                        for (var m = 0; m < json.messages.length; m++) {
-                            if (json.messages[m].uid == oldMsg.id || json.messages[m].discordId == oldMsg.id) {
-                                json.messages[m].message = convertEmojis(discordMsg);
-                            }
-                        }
-                        fs.writeFile(dataFile, JSON.stringify(json, null, 4), (err) => {
-                            if (err)
-                                console.log("Error writing file: " + err);
-                        });
-                    }
-                }
-            });
-        });
+    if (newMsg.author.bot && allowedBots.indexOf(newMsg.author + "") == -1) {
+        console.log("User was a bot with id: " + newMsg.author + " which is not in allowed list. Message will not be edited in simplechat.");
+	    return;
     }
+    fs.exists(dataFile, (exists) => {
+        fs.readFile(dataFile, function(err, data) {
+            if (data) {
+                var json = JSON.parse(data);
+                if (json) {
+                    for (var m = 0; m < json.messages.length; m++) {
+                        if (json.messages[m].uid == oldMsg.id || json.messages[m].discordId == oldMsg.id) {
+                            json.messages[m].message = convertEmojis(discordMsg);
+                        }
+                    }
+                    fs.writeFile(dataFile, JSON.stringify(json, null, 4), (err) => {
+                        if (err)
+                            console.log("Error writing file: " + err);
+                    });
+                }
+            }
+        });
+    });
 });
 
 client.on("messageDelete", function(msg){

@@ -8,5 +8,8 @@
     ],
     "simpleChatAttachmentsCache": "/var/www/chat/cache/",
     "simpleChatDataFile": "/var/www/chat/data/chatlog.json",
-    "maxChatLength": 100
+    "maxChatLength": 100,
+    "allowedBots": [
+        "The id of bots you want to allow to communicate with SimpleChat users on webOS."
+     ]
 }
