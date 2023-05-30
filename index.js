@@ -111,7 +111,7 @@ client.on('message', msg => { //new message received in Discord
                             "height": attachdata.height,
                             "width": attachdata.width,
                         }
-                        if (safeExtensions.includes(extension)) {
+                        if (safeExtensions.includes(extension.toLowerCase())) {
                             attachments.push(attachment);
                             downloadAttachment(attachdata.url, attachdata.id + "." + extension)
                         }
