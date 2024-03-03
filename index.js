@@ -149,6 +149,12 @@ client.on('message', msg => { //new message received in Discord
                     }
                 }
             });
+
+	    if (msg.reference) {
+		console.log("Message " + msg.id + " was a reply to: " + msg.reference.messageID);
+		var replyToId = msg.reference.messageID;
+		appendReply(newMessage.message, msg.id, replyToId);
+	    }
         }
     }
 });
@@ -191,13 +197,18 @@ client.on('messageUpdate', (oldMsg, newMsg) => { //message edited in Discord
         console.log("User was a bot with id: " + newMsg.author + " which is not in allowed list. Message will not be edited in simplechat.");
 	    return;
     }
+    updateMessage(oldMsg.id, discordMsg);
+});
+
+function updateMessage(oldMsgId, discordMsg) {
+    console.log("looking for message to update " + oldMsgId);
     fs.exists(dataFile, (exists) => {
         fs.readFile(dataFile, function(err, data) {
             if (data) {
                 var json = JSON.parse(data);
                 if (json) {
                     for (var m = 0; m < json.messages.length; m++) {
-                        if (json.messages[m].uid == oldMsg.id || json.messages[m].discordId == oldMsg.id) {
+                        if (json.messages[m].uid == oldMsgId || json.messages[m].discordId == oldMsgId) {
                             json.messages[m].message = convertEmojis(discordMsg);
                         }
                     }
@@ -209,7 +220,7 @@ client.on('messageUpdate', (oldMsg, newMsg) => { //message edited in Discord
             }
         });
     });
-});
+}
 
 client.on("messageDelete", function(msg){
     console.log(msg.id + " is a deleted message from: " + msg.author + ", in channel:" + msg.channel);
@@ -217,6 +228,17 @@ client.on("messageDelete", function(msg){
 });
 
 //Helper functions
+
+async function appendReply(cleanContent, discordMessageId, replyToId) {
+    console.log("I should async edit a message with id " + discordMessageId + " as a reply to " + replyToId);
+    var findOldMsg = await findDiscordMessage(replyToId);
+    if (findOldMsg) {
+        console.log("i found the old message on Discord: " + findOldMsg.cleanContent);
+        msgWithReplyContent = cleanContent + "<br><i>in reply to: " + findOldMsg.cleanContent + "</i>";
+        console.log("I should append " + findOldMsg.cleanContent + " to " + discordMessageId);
+    	updateMessage(discordMessageId, msgWithReplyContent);
+    }
+}
 
 function downloadAttachment(url, filename) {
     var dest = cachePath
@@ -273,6 +295,19 @@ var findMessage = async function(messageId, discordId) {
                 return checkMessage.id;
             }
         }
+    });
+    return findMsg;
+}
+
+var findDiscordMessage = async function(messageId) {
+    if (listenChannel == "*") {
+        console.warn("Warning: listening to all channels limits responses to only the post channel...");
+    }
+    console.log("Looking for Discord message: " + messageId + " in channel: " + listenChannel);
+    var channel = client.channels.cache.get(postChannel);
+    var findMsg = await channel.messages.fetch(messageId).then(message => {
+	if (message)
+		return message;
     });
     return findMsg;
 }
