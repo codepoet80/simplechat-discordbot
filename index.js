@@ -160,7 +160,9 @@ client.on('messageCreate', msg => { //new message received in Discord
             if (msg.reference) {
                 console.log("Message " + msg.id + " was a reply to: " + msg.reference.messageId);
                 var replyToId = msg.reference.messageId;
-                appendReply(newMessage.message, msg.id, replyToId);
+                setTimeout(function() {
+                    appendReply(newMessage.message, msg.id, replyToId);
+                }, 1000);
             }
         }
     }
