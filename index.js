@@ -88,7 +88,7 @@ webapp.post('/edit', async function(req, res) {
 
 //Discord client -- this is the main bot code
 //  It needs to be able to reach the Internet
-client.on('ready', () => {
+client.on('clientReady', () => {
     console.log(`Logged in as ${client.user.tag}!`);
 });
 client.login(botToken);
