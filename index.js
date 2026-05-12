@@ -3,7 +3,7 @@ const express = require('express');
 const jo = require('jpeg-autorotate');
 const sharp = require('sharp');
 const fs = require('fs');
-var https = require('https');
+const https = require('https');
 
 var dataFile = config.simpleChatDataFile;
 var cachePath = config.simpleChatAttachmentsCache;
@@ -14,8 +14,15 @@ webapp.use(express.json());
 var webPort = config.webPort;
 
 //Discord config
-const Discord = require('discord.js');
-const client = new Discord.Client();
+const { Client, GatewayIntentBits } = require('discord.js');
+const client = new Client({
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.GuildMessageReactions,
+        GatewayIntentBits.MessageContent
+    ]
+});
 var botToken = config.discordBotToken;
 var listenChannel = config.discordListenChannelId;
 var postChannel = config.discordPostChannelId;
@@ -86,23 +93,23 @@ client.on('ready', () => {
 });
 client.login(botToken);
 
-client.on('message', msg => { //new message received in Discord
-    var user = new Discord.User(client, msg.author);
-    console.log(msg.id + " is a new message from: " + msg.author + ", in channel:" + msg.channel + " user was bot: " + user.bot);
-    if (msg.channel == listenChannel || listenChannel == "*") {
-	if (user.bot && allowedBots.indexOf(msg.author+"") == -1) {
-		console.log("User was a bot with id: " + msg.author + " which is not in allowed list. Message will not be posted to simplechat.");
-		return;
-	}
+client.on('messageCreate', msg => { //new message received in Discord
+    var user = msg.author;
+    console.log(msg.id + " is a new message from: " + user.tag + ", in channel:" + msg.channel.id + " user was bot: " + user.bot);
+    if (msg.channel.id == listenChannel || listenChannel == "*") {
+        if (user.bot && allowedBots.indexOf(user.id) == -1) {
+            console.log("User was a bot with id: " + user.id + " which is not in allowed list. Message will not be posted to simplechat.");
+            return;
+        }
         if (!user.system) {
-	        var msgContent = msg.cleanContent;
+            var msgContent = msg.cleanContent;
 
             try {
                 if (msg.attachments) {
                     var attachments = [];
                     console.log("Incoming message has attachments");
                     for (const thisattach of msg.attachments) {
-                        attachdata = thisattach[1];
+                        var attachdata = thisattach[1];
                         var nameparts = attachdata.name.split(".");
                         var extension = nameparts[nameparts.length - 1];
                         var attachment = {
@@ -150,17 +157,17 @@ client.on('message', msg => { //new message received in Discord
                 }
             });
 
-	    if (msg.reference) {
-		console.log("Message " + msg.id + " was a reply to: " + msg.reference.messageID);
-		var replyToId = msg.reference.messageID;
-		appendReply(newMessage.message, msg.id, replyToId);
-	    }
+            if (msg.reference) {
+                console.log("Message " + msg.id + " was a reply to: " + msg.reference.messageId);
+                var replyToId = msg.reference.messageId;
+                appendReply(newMessage.message, msg.id, replyToId);
+            }
         }
     }
 });
 
 client.on('messageReactionAdd', (reaction, user) => { //message reaction added in Discord
-    console.log("A reaction happened on: " + reaction.message + " user was bot: " + user.bot);
+    console.log("A reaction happened on: " + reaction.message.id + " user was bot: " + user.bot);
     if (!user.bot) {
         fs.exists(dataFile, (exists) => {
             fs.readFile(dataFile, function(err, data) {
@@ -168,7 +175,7 @@ client.on('messageReactionAdd', (reaction, user) => { //message reaction added i
                     var json = JSON.parse(data);
                     if (json) {
                         for (var m = 0; m < json.messages.length; m++) {
-                            if (json.messages[m].uid == reaction.message || json.messages[m].discordId == reaction.message) {
+                            if (json.messages[m].uid == reaction.message.id || json.messages[m].discordId == reaction.message.id) {
                                 console.log("Found chatlog message to like!");
                                 if (!json.messages[m].likes)
                                     json.messages[m].likes = 1;
@@ -188,16 +195,40 @@ client.on('messageReactionAdd', (reaction, user) => { //message reaction added i
 });
 
 client.on('messageUpdate', (oldMsg, newMsg) => { //message edited in Discord
-    console.log("An edit happened on: " + oldMsg + ", user was bot: " + newMsg.author.bot);
+    console.log("An edit happened on: " + oldMsg.id + ", user was bot: " + newMsg.author.bot);
     var discordMsg = newMsg.cleanContent;
     discordMsg = discordMsg.split("**: ");
     discordMsg = discordMsg[discordMsg.length - 1];
 
-    if (newMsg.author.bot && allowedBots.indexOf(newMsg.author + "") == -1) {
-        console.log("User was a bot with id: " + newMsg.author + " which is not in allowed list. Message will not be edited in simplechat.");
-	    return;
+    if (newMsg.author.bot && allowedBots.indexOf(newMsg.author.id) == -1) {
+        console.log("User was a bot with id: " + newMsg.author.id + " which is not in allowed list. Message will not be edited in simplechat.");
+        return;
     }
     updateMessage(oldMsg.id, discordMsg);
+});
+
+client.on('messageDelete', function(msg) { //message deleted in Discord
+    console.log(msg.id + " was deleted in Discord, removing from chatlog");
+    fs.readFile(dataFile, function(err, data) {
+        if (data) {
+            var json = JSON.parse(data);
+            if (json) {
+                var originalLength = json.messages.length;
+                json.messages = json.messages.filter(function(m) {
+                    return m.uid != msg.id && m.discordId != msg.id;
+                });
+                if (json.messages.length < originalLength) {
+                    fs.writeFile(dataFile, JSON.stringify(json, null, 4), (err) => {
+                        if (err)
+                            console.log("Error writing file: " + err);
+                    });
+                    console.log("Removed deleted message from chatlog.");
+                } else {
+                    console.log("Deleted Discord message was not found in chatlog.");
+                }
+            }
+        }
+    });
 });
 
 function updateMessage(oldMsgId, discordMsg) {
@@ -222,11 +253,6 @@ function updateMessage(oldMsgId, discordMsg) {
     });
 }
 
-client.on("messageDelete", function(msg){
-    console.log(msg.id + " is a deleted message from: " + msg.author + ", in channel:" + msg.channel);
-    //TODO: Implement message delete!
-});
-
 //Helper functions
 
 async function appendReply(cleanContent, discordMessageId, replyToId) {
@@ -234,9 +260,9 @@ async function appendReply(cleanContent, discordMessageId, replyToId) {
     var findOldMsg = await findDiscordMessage(replyToId);
     if (findOldMsg) {
         console.log("i found the old message on Discord: " + findOldMsg.cleanContent);
-        msgWithReplyContent = cleanContent + "<br><i>in reply to: " + findOldMsg.cleanContent + "</i>";
+        var msgWithReplyContent = cleanContent + "<br><i>in reply to: " + findOldMsg.cleanContent + "</i>";
         console.log("I should append " + findOldMsg.cleanContent + " to " + discordMessageId);
-    	updateMessage(discordMessageId, msgWithReplyContent);
+        updateMessage(discordMessageId, msgWithReplyContent);
     }
 }
 
@@ -257,13 +283,18 @@ function downloadAttachment(url, filename) {
                 jo.rotate(path, options, (error, buffer, orientation, dimensions, quality) => {
                     if (error) {
                       console.log('An error occurred when rotating the file: ' + error.message)
-                      return
+                    } else {
+                        console.log(`Orientation was ${orientation}`)
+                        console.log(`Dimensions after rotation: ${dimensions.width}x${dimensions.height}`)
+                        console.log(`Quality: ${quality}`)
+                        fs.writeFile(path, buffer, (err) => {
+                            if (err)
+                                console.log('Error saving rotated image: ' + err);
+                            else
+                                console.log('Rotation saved');
+                        });
                     }
-                    console.log(`Orientation was ${orientation}`)
-                    console.log(`Dimensions after rotation: ${dimensions.width}x${dimensions.height}`)
-                    console.log(`Quality: ${quality}`)
                   })
-                console.log('Rotation complete');
             }
             console.log('Resizing image');
             sharp(path)
@@ -276,7 +307,7 @@ function downloadAttachment(url, filename) {
             });
         });
     }).on('error', function(err) { // Handle errors
-        fs.unlink(dest); // Delete the file async. (But we don't check the result)
+        fs.unlink(dest + filename, () => {});
     });
 };
 
@@ -288,7 +319,7 @@ var findMessage = async function(messageId, discordId) {
     console.log("Looking for message: " + messageId + "/" + discordId + " in channel: " + listenChannel);
     var channel = client.channels.cache.get(postChannel);
     var findMsg = await channel.messages.fetch({ limit: 100 }).then(messages => {
-        for (message of messages) {
+        for (var message of messages) {
             var checkMessage = message[1];
             if (checkMessage.id == messageId || checkMessage.id == discordId) {
                 console.log("Found matching message in Discord: " + checkMessage.id);
@@ -306,8 +337,8 @@ var findDiscordMessage = async function(messageId) {
     console.log("Looking for Discord message: " + messageId + " in channel: " + listenChannel);
     var channel = client.channels.cache.get(postChannel);
     var findMsg = await channel.messages.fetch(messageId).then(message => {
-	if (message)
-		return message;
+        if (message)
+            return message;
     });
     return findMsg;
 }
@@ -336,20 +367,16 @@ function convertWosaLinks(message) { //change default wosa link to one Discord w
     return message;
 }
 
-function convertEmoticons(message) { //turn an emoji into a webOS emoticon
+function convertEmoticons(message) { //turn a webOS emoticon into an emoji
     for (var e = 0; e < emojiTranslate.length; e++) {
-        if (message.indexOf(emojiTranslate[e].webOS) != -1) {
-            message = message.replace(emojiTranslate[e].webOS, emojiTranslate[e].emoji);
-        }
+        message = message.replaceAll(emojiTranslate[e].webOS, emojiTranslate[e].emoji);
     }
     return message;
 }
 
-function convertEmojis(message) { //turn a webOS emoticon into an emoji
+function convertEmojis(message) { //turn an emoji into a webOS emoticon
     for (var e = 0; e < emojiTranslate.length; e++) {
-        if (message.indexOf(emojiTranslate[e].emoji) != -1) {
-            message = message.replace(emojiTranslate[e].emoji, emojiTranslate[e].webOS);
-        }
+        message = message.replaceAll(emojiTranslate[e].emoji, emojiTranslate[e].webOS);
     }
     return message;
 }
@@ -368,8 +395,6 @@ function formatDateTime(currentDateTime) {
 var emojiTranslate = [
     { "emoji": "😉", "webOS": ";)" },
     { "emoji": "😨", "webOS": ":-!" },
-    { "emoji": "😦", "webOS": ":-!" },
-    { "emoji": "😦", "webOS": ":-!" },
     { "emoji": "😇", "webOS": "O:)" },
     { "emoji": "🙂", "webOS": ":)" },
     { "emoji": "😈", "webOS": ">:-)" },
@@ -377,24 +402,16 @@ var emojiTranslate = [
     { "emoji": "🤢", "webOS": ":@" },
     { "emoji": "😜", "webOS": "o_O" },
     { "emoji": "😡", "webOS": ">:(" },
-    { "emoji": "😠", "webOS": ">:(" },
-    { "emoji": "☹", "webOS": ":(" },
-    { "emoji": "😳", "webOS": ":["},
+    { "emoji": "☹",  "webOS": ":(" },
+    { "emoji": "😳", "webOS": ":[" },
     { "emoji": "😮", "webOS": ":O" },
-    { "emoji": "🙁", "webOS": ":(" },
     { "emoji": "😎", "webOS": "B-)" },
     { "emoji": "😀", "webOS": ":D" },
-    { "emoji": "😃", "webOS": ":D" },
     { "emoji": "😘", "webOS": ":-*" },
-    { "emoji": "😗", "webOS": ":-*" },
-    { "emoji": "😚", "webOS": ":-*" },
-    { "emoji": "😙", "webOS": ":-*" },
-    { "emoji": "❤", "webOS": "<3" },
+    { "emoji": "❤",  "webOS": "<3" },
     { "emoji": "😛", "webOS": ":P" },
     { "emoji": "😐", "webOS": ":|" },
     { "emoji": "😵", "webOS": "X(" },
     { "emoji": "😄", "webOS": "^_^" },
-    { "emoji": "😁", "webOS": "^_^" },
-    { "emoji": "😢", "webOS": ":'(" },
-    { "emoji": "😭", "webOS": ":'(" }
+    { "emoji": "😢", "webOS": ":'(" }
 ];
