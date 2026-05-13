@@ -44,12 +44,20 @@ webapp.post('/post', function(req, res) {
     var message = req.body.content;
     message = convertEmoticons(message);
     message = convertWosaLinks(message);
-    res.end("{'status':'ok'}")
+    res.end("{'status':'ok'}");
     var channel = client.channels.cache.get(postChannel);
-    channel.send("**" + req.body.username + "**: " + message).then(message => {
-        console.log("Sent message id: " + message.id);
-        //update chatlog.json to include ID from discord
-        discordIDToSimpleChat(req.body.uid, message.id);
+    var label = message ? "**" + req.body.username + "**: " + message : "**" + req.body.username + "**";
+    var msgOptions = { content: label };
+    if (req.body.attachments && req.body.attachments.length > 0) {
+        var files = req.body.attachments
+            .filter(function(a) { return safeExtensions.includes(a.extension.toLowerCase()); })
+            .map(function(a) { return cachePath + a.filename; });
+        if (files.length > 0)
+            msgOptions.files = files;
+    }
+    channel.send(msgOptions).then(function(msg) {
+        console.log("Sent message id: " + msg.id);
+        discordIDToSimpleChat(req.body.uid, msg.id);
     });
 });
 
