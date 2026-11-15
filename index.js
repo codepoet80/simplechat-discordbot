@@ -419,6 +419,7 @@ var emojiTranslate = [
     { "emoji": "😀", "webOS": ":D" },
     { "emoji": "😘", "webOS": ":-*" },
     { "emoji": "❤",  "webOS": "<3" },
+    { "emoji": "❤️", "webOS": "&lt;3" }, //client sends HTML-escaped heart; keep after "❤" so outbound hearts still become "<3"
     { "emoji": "😛", "webOS": ":P" },
     { "emoji": "😐", "webOS": ":|" },
     { "emoji": "😵", "webOS": "X(" },
