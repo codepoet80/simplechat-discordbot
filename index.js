@@ -408,10 +408,12 @@ var emojiTranslate = [
     { "emoji": "😨", "webOS": ":-!" },
     { "emoji": "😇", "webOS": "O:)" },
     { "emoji": "🙂", "webOS": ":)" },
+    { "emoji": "😈", "webOS": "&gt;:-)" }, //legacy client sends and expects escaped >
     { "emoji": "😈", "webOS": ">:-)" },
     { "emoji": "😕", "webOS": ":/ " },
     { "emoji": "🤢", "webOS": ":@" },
     { "emoji": "😜", "webOS": "o_O" },
+    { "emoji": "😡", "webOS": "&gt;:(" },  //legacy client sends and expects escaped >
     { "emoji": "😡", "webOS": ">:(" },
     { "emoji": "☹",  "webOS": ":(" },
     { "emoji": "😳", "webOS": ":[" },
@@ -419,8 +421,10 @@ var emojiTranslate = [
     { "emoji": "😎", "webOS": "B-)" },
     { "emoji": "😀", "webOS": ":D" },
     { "emoji": "😘", "webOS": ":-*" },
-    { "emoji": "❤",  "webOS": "<3" },
-    { "emoji": "❤️", "webOS": "&lt;3" }, //client sends HTML-escaped heart; keep after "❤" so outbound hearts still become "<3"
+    //legacy client sends and expects the HTML-escaped heart (&lt;3); its emoticon parser won't match a bare <3
+    { "emoji": "❤️", "webOS": "&lt;3" }, //inbound: &lt;3 -> ❤️
+    { "emoji": "❤",  "webOS": "&lt;3" }, //outbound: bare ❤ -> &lt;3 (❤️ is caught by the entry above)
+    { "emoji": "❤️", "webOS": "<3" },    //inbound: bare <3 -> ❤️
     { "emoji": "😛", "webOS": ":P" },
     { "emoji": "😐", "webOS": ":|" },
     { "emoji": "😵", "webOS": "X(" },
