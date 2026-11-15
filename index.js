@@ -385,6 +385,7 @@ function convertEmoticons(message) { //turn a webOS emoticon into an emoji
 }
 
 function convertEmojis(message) { //turn an emoji into a webOS emoticon
+    message = message.replaceAll("️", ""); //strip emoji variation selectors (e.g. ❤️ -> ❤); legacy client can't render them
     for (var e = 0; e < emojiTranslate.length; e++) {
         message = message.replaceAll(emojiTranslate[e].emoji, emojiTranslate[e].webOS);
     }
